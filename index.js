@@ -35,6 +35,17 @@ function clearDisplay() {
   lastInputIsOperator = false;
 }
 
+function clearLastChar() {
+  if (display.value.length === 1) {
+    display.value = "0";
+  } else {
+    display.value = display.value.slice(0, -1);
+  }
+
+  const lastChar = display.value.slice(-1);
+  lastInputIsOperator = isOperator(lastChar);
+}
+
 function calculate() {
   const lastChar = display.value.slice(-1);
 
