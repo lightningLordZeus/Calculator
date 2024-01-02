@@ -2,26 +2,24 @@ const display = document.getElementById("display");
 
 let lastInputIsOperator = false;
 
-function appendToDisplay(input) {
+function isOperator(char) {
   const operators = ["+", "-", "*", "/"];
+  return operators.includes(char);
+}
 
-  if (
-    lastInputIsOperator &&
-    operators.includes(input)
-  ) {
-
+function appendToDisplay(input) {
+  if (lastInputIsOperator && isOperator(input)) {
     display.value = display.value.slice(0, -1) + input;
   } else {
     const lastChar = display.value.slice(-1);
-    
+
     if (lastChar === "." && input === ".") {
       return;
     }
 
     if (
-      (display.value === "0" &&
-        input !== "." &&
-        !operators.includes(input)) || display.value === "error"
+      (display.value === "0" && input !== "." && !isOperator(input)) ||
+      display.value === "error"
     ) {
       display.value = input;
     } else {
@@ -29,7 +27,7 @@ function appendToDisplay(input) {
     }
   }
 
-  lastInputIsOperator = operators.includes(input);
+  lastInputIsOperator = isOperator(input);
 }
 
 function clearDisplay() {
@@ -38,11 +36,17 @@ function clearDisplay() {
 }
 
 function calculate() {
-  try {
-    display.value = eval(display.value);
-    lastInputIsOperator = false;
-  } catch (error) {
-    display.value = "error";
-    lastInputIsOperator = false;
+  const lastChar = display.value.slice(-1);
+
+  if (isOperator(lastChar)) {
+    return;
+  } else {
+    try {
+      display.value = eval(display.value);
+      lastInputIsOperator = false;
+    } catch (error) {
+      display.value = "error";
+      lastInputIsOperator = false;
+    }
   }
 }
