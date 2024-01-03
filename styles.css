@@ -63,3 +63,7 @@ button:active {
 .operator-btn:active {
     background-color: hsl(35, 100%, 80%);
 }
+
+.q {
+    border-radius: 20px;
+}
