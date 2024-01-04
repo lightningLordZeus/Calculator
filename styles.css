@@ -64,6 +64,15 @@ button:active {
     background-color: hsl(35, 100%, 80%);
 }
 
-.q {
+.add-ons {
     border-radius: 20px;
+    background-color: hsl(0, 0%, 20%);
+}
+
+.add-ons:hover {
+    background-color: hsl(0, 0%, 30%);
+}
+
+.add-ons:active {
+    background-color: hsl(0, 0%, 40%);
 }

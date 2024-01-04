@@ -51,6 +51,14 @@ function appendToDisplay(input) {
   lastInputIsOperator = isOperator(input);
 }
 
+function factorial(input) {
+  if (input === 0 || input === 1) {
+    return 1;
+  } else {
+    return input * factorial(input - 1);
+  }
+}
+
 function clearDisplay() {
   display.value = "0";
   lastInputIsOperator = false;
@@ -74,7 +82,14 @@ function calculate() {
     return;
   } else {
     try {
-      if (display.value.includes("%")) {
+      if (display.value.includes("!")) {
+        const number = parseInt(display.value.slice(0, -1));
+        if (!isNaN(number)) {
+          display.value = factorial(number);
+        } else {
+          display.value = "error";
+        }
+      } else if (display.value.includes("%")) {
         display.value = eval(display.value.replace(/%/g, "/100"));
       } else {
         display.value = eval(display.value);
