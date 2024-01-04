@@ -16,6 +16,13 @@ function appendToDisplay(input) {
     const papapa = ["%", ")", "!"];
     const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
+    if (numbers.includes(lastChar) && input === ".") {
+      const lastNumber = display.value.split(/[\+\-\*\/]/).pop();
+      if (lastNumber.includes(".")) {
+        return;
+      }
+    }
+
     if (lastChar === "." && input === ".") {
       return;
     }
@@ -33,7 +40,8 @@ function appendToDisplay(input) {
       (lastTimeCalculated &&
         !isOperator(input) &&
         input !== "%" &&
-        input !== "." && input !== "!")
+        input !== "." &&
+        input !== "!")
     ) {
       display.value = input;
     } else if (
@@ -41,9 +49,16 @@ function appendToDisplay(input) {
       (isOperator(input) || input === "%" || input === "!")
     ) {
       return;
-    } else if (papapa.includes(lastChar) && !papapa.includes(input)) {
+    } else if (
+      papapa.includes(lastChar) &&
+      !papapa.includes(input) &&
+      numbers.includes(input)
+    ) {
       display.value += "*" + input;
-    } else if (input === "(" && numbers.includes(lastChar)) {
+    } else if (
+      input === "(" &&
+      (numbers.includes(lastChar) || lastChar === "!")
+    ) {
       display.value += "*" + input;
     } else {
       display.value += input;
@@ -80,30 +95,94 @@ function clearLastChar() {
 }
 
 function calculate() {
-  const lastChar = display.value.slice(-1);
+  try {
+    let expression = display.value;
 
-  if (isOperator(lastChar) || lastChar === ".") {
-    return;
-  } else {
-    try {
-      if (display.value.includes("!")) {
-        const number = parseInt(display.value.slice(0, -1));
-        if (!isNaN(number)) {
-          display.value = factorial(number);
-        } else {
-          display.value = "error";
+    expression = expression.replace(/(\d+)!/g, function (match, number) {
+      return factorial(parseInt(number));
+    });
+
+    const tokens = expression.match(/(\d+|\+|\-|\*|\/|\%|\!|\(|\))/g) || [];
+
+    const precedence = {
+      "+": 1,
+      "-": 1,
+      "*": 2,
+      "/": 2,
+      "%": 2,
+      "!": 3,
+    };
+
+    const outputQueue = [];
+    const operatorStack = [];
+
+    for (const token of tokens) {
+      if (token.match(/\d+/)) {
+        outputQueue.push(token);
+      } else if (isOperator(token)) {
+        while (
+          operatorStack.length &&
+          precedence[operatorStack[operatorStack.length - 1]] >=
+            precedence[token]
+        ) {
+          outputQueue.push(operatorStack.pop());
         }
-      } else if (display.value.includes("%")) {
-        display.value = eval(display.value.replace(/%/g, "/100"));
-      } else {
-        display.value = eval(display.value);
+        operatorStack.push(token);
+      } else if (token === "(") {
+        operatorStack.push(token);
+      } else if (token === ")") {
+        while (
+          operatorStack.length &&
+          operatorStack[operatorStack.length - 1] !== "("
+        ) {
+          outputQueue.push(operatorStack.pop());
+        }
+        operatorStack.pop();
       }
-
-      lastTimeCalculated = true;
-      lastInputIsOperator = false;
-    } catch (error) {
-      display.value = "error";
-      lastInputIsOperator = false;
     }
+
+    while (operatorStack.length) {
+      outputQueue.push(operatorStack.pop());
+    }
+
+    const resultStack = [];
+
+    for (const token of outputQueue) {
+      if (token.match(/\d+/)) {
+        resultStack.push(parseFloat(token));
+      } else if (isOperator(token)) {
+        const operand2 = resultStack.pop();
+        const operand1 = resultStack.pop();
+
+        switch (token) {
+          case "+":
+            resultStack.push(operand1 + operand2);
+            break;
+          case "-":
+            resultStack.push(operand1 - operand2);
+            break;
+          case "*":
+            resultStack.push(operand1 * operand2);
+            break;
+          case "/":
+            resultStack.push(operand1 / operand2);
+            break;
+          case "%":
+            resultStack.push(operand1 % operand2);
+            break;
+          default:
+            break;
+        }
+      } else {
+        resultStack.push(token);
+      }
+    }
+
+    display.value = resultStack[0];
+    lastTimeCalculated = true;
+    lastInputIsOperator = false;
+  } catch (error) {
+    display.value = "error";
+    lastInputIsOperator = false;
   }
 }
