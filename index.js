@@ -13,7 +13,7 @@ function appendToDisplay(input) {
     display.value = display.value.slice(0, -1) + input;
   } else {
     const lastChar = display.value.slice(-1);
-    const papapa = ["%", ")"];
+    const papapa = ["%", ")", "!"];
     const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
     if (lastChar === "." && input === ".") {
@@ -24,17 +24,21 @@ function appendToDisplay(input) {
       (display.value === "0" &&
         input !== "." &&
         !isOperator(input) &&
-        input !== "%") ||
-      (display.value === "error" && !isOperator(input) && input !== "%") ||
+        input !== "%" &&
+        input !== "!") ||
+      (display.value === "error" &&
+        !isOperator(input) &&
+        input !== "%" &&
+        input !== "!") ||
       (lastTimeCalculated &&
         !isOperator(input) &&
         input !== "%" &&
-        input !== ".")
+        input !== "." && input !== "!")
     ) {
       display.value = input;
     } else if (
       display.value === "error" &&
-      (isOperator(input) || input === "%")
+      (isOperator(input) || input === "%" || input === "!")
     ) {
       return;
     } else if (papapa.includes(lastChar) && !papapa.includes(input)) {
