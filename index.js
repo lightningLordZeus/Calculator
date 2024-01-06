@@ -2,6 +2,7 @@ const display = document.getElementById("display");
 
 let lastInputIsOperator = false;
 let lastTimeCalculated = false;
+let operatorWasUsed = false;
 
 function isOperator(char) {
   const operators = ["+", "-", "*", "/"];
@@ -21,6 +22,19 @@ function appendToDisplay(input) {
       if (lastNumber.includes(".")) {
         return;
       }
+    }
+
+    if (isOperator(input)) {
+      operatorWasUsed = true;
+    }
+
+    if (operatorWasUsed && numbers.includes(numbers) && input !== "0") {
+      operatorWasUsed = false;
+    }
+
+    if (operatorWasUsed && lastChar === "0" && numbers.includes(input)) {
+      display.value = display.value.slice(0, -1);
+      operatorWasUsed = false;
     }
 
     if (lastChar === "." && input === ".") {
