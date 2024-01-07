@@ -47,7 +47,9 @@ function appendToDisplay(input) {
         !isOperator(input) &&
         input !== "%" &&
         input !== "!") ||
-      (display.value === "error" &&
+      ((display.value === "error" ||
+        display.value === "NaN" ||
+        display.value === "Infinity") &&
         !isOperator(input) &&
         input !== "%" &&
         input !== "!") ||
@@ -59,7 +61,9 @@ function appendToDisplay(input) {
     ) {
       display.value = input;
     } else if (
-      display.value === "error" &&
+      (display.value === "error" ||
+        display.value === "NaN" ||
+        display.value === "Infinity") &&
       (isOperator(input) || input === "%" || input === "!")
     ) {
       return;
@@ -85,10 +89,14 @@ function appendToDisplay(input) {
 }
 
 function factorial(input) {
-  if (input === 0 || input === 1) {
-    return 1;
+  if (Number.isInteger(input) && input >= 0) {
+    if (input === 0 || input === 1) {
+      return 1;
+    } else {
+      return input * factorial(input - 1);
+    }
   } else {
-    return input * factorial(input - 1);
+    return NaN;
   }
 }
 
@@ -98,7 +106,12 @@ function clearDisplay() {
 }
 
 function clearLastChar() {
-  if (display.value.length === 1 || display.value === "error") {
+  if (
+    display.value.length === 1 ||
+    display.value === "error" ||
+    display.value === "NaN" ||
+    display.value === "Infinity"
+  ) {
     display.value = "0";
   } else {
     display.value = display.value.slice(0, -1);
@@ -112,87 +125,32 @@ function calculate() {
   try {
     let expression = display.value;
 
-    expression = expression.replace(/(\d+)!/g, function (match, number) {
-      return factorial(parseInt(number));
-    });
-
-    const tokens = expression.match(/(\d+|\+|\-|\*|\/|\%|\!|\(|\))/g) || [];
-
-    const precedence = {
-      "+": 1,
-      "-": 1,
-      "*": 2,
-      "/": 2,
-      "%": 2,
-      "!": 3,
-    };
-
-    const outputQueue = [];
-    const operatorStack = [];
-
-    for (const token of tokens) {
-      if (token.match(/\d+/)) {
-        outputQueue.push(token);
-      } else if (isOperator(token)) {
-        while (
-          operatorStack.length &&
-          precedence[operatorStack[operatorStack.length - 1]] >=
-            precedence[token]
-        ) {
-          outputQueue.push(operatorStack.pop());
+    expression = expression.replace(
+      /(\d+(\.\d+)?)!/g,
+      function (match, number) {
+        if (Number.isInteger(parseFloat(number))) {
+          return factorial(parseInt(number));
+        } else {
+          return "error";
         }
-        operatorStack.push(token);
-      } else if (token === "(") {
-        operatorStack.push(token);
-      } else if (token === ")") {
-        while (
-          operatorStack.length &&
-          operatorStack[operatorStack.length - 1] !== "("
-        ) {
-          outputQueue.push(operatorStack.pop());
-        }
-        operatorStack.pop();
       }
-    }
+    );
 
-    while (operatorStack.length) {
-      outputQueue.push(operatorStack.pop());
-    }
-
-    const resultStack = [];
-
-    for (const token of outputQueue) {
-      if (token.match(/\d+/)) {
-        resultStack.push(parseFloat(token));
-      } else if (isOperator(token)) {
-        const operand2 = resultStack.pop();
-        const operand1 = resultStack.pop();
-
-        switch (token) {
-          case "+":
-            resultStack.push(operand1 + operand2);
-            break;
-          case "-":
-            resultStack.push(operand1 - operand2);
-            break;
-          case "*":
-            resultStack.push(operand1 * operand2);
-            break;
-          case "/":
-            resultStack.push(operand1 / operand2);
-            break;
-          case "%":
-            resultStack.push(operand1 % operand2);
-            break;
-          default:
-            break;
-        }
-      } else {
-        resultStack.push(token);
+    expression = expression.replace(
+      /(\d+(\.\d+)?)%/g,
+      function (match, number) {
+        return parseFloat(number) / 100;
       }
+    );
+
+    const result = eval(expression);
+
+    if (isNaN(result) || result === "Infinity") {
+      display.value = "error";
+    } else {
+      display.value = result;
     }
 
-    display.value = resultStack[0];
     lastTimeCalculated = true;
     lastInputIsOperator = false;
   } catch (error) {
