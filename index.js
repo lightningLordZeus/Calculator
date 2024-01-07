@@ -3,6 +3,7 @@ const display = document.getElementById("display");
 let lastInputIsOperator = false;
 let lastTimeCalculated = false;
 let operatorWasUsed = false;
+let parenthesesWasUsed = false;
 
 function isOperator(char) {
   const operators = ["+", "-", "*", "/"];
@@ -46,7 +47,8 @@ function appendToDisplay(input) {
         input !== "." &&
         !isOperator(input) &&
         input !== "%" &&
-        input !== "!") ||
+        input !== "!" &&
+        input !== ")") ||
       ((display.value === "error" ||
         display.value === "NaN" ||
         display.value === "Infinity") &&
@@ -80,6 +82,16 @@ function appendToDisplay(input) {
       display.value += "*" + input;
     } else {
       display.value += input;
+    }
+
+    if (input === "(") {
+      display.value += ")";
+      parenthesesWasUsed = true;
+    } else if (parenthesesWasUsed && input === ")") {
+      parenthesesWasUsed = false;
+      display.value = display.value.slice(0, -1);
+    } else if (!parenthesesWasUsed && input === ")") {
+      return;
     }
 
     lastTimeCalculated = false;
